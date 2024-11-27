@@ -3,7 +3,7 @@
 Хочу пожелать всем читающим данную работу доброго времени суток и поблагодарить за уделенное время!
 
 ---
-![1]([https://github.com/Alya-DE/My_ETL/blob/main/png/etl_schema.png])
+![etl_schema](https://github.com/Alya-DE/My_ETL/blob/main/png/etl_schema.png)
 В рамках данного проекта я поставила цель практического освоения процессов ETL. В качестве источника данных был выбран открытый API сайта hh.ru. Задачей было настроить получение данных об опубликованных вакансиях, содержащих ключевые слова "Data Engineer", на начальные позиции в Москве с требованиями к опыту от 0 до 3 лет. В качестве оркестратора был задействован Apache Airflow. Витрины данных было решено хранить в PostgreSQL. Для визуализации был выбран сервис анализа и визуализации данных от Yandex - DataLens.
 
 ---
@@ -24,7 +24,9 @@
 ---
 ### Источник данных:
 В качестве источника данных был выбран следующий API URL:
+
 f"https://api.hh.ru/vacancies?text=data%20engineer&area=1&per_page=100&date_from={start_date}&date_to={end_date}&experience=between1And3&experience=noExperience" 
+
 Так как hh.ru позволяет получить исторические данные только за предшествующий месяц, то было принято решение получить данные по опубликованным вакансиям с 1 ноября.
 
 ---
@@ -38,4 +40,4 @@ f"https://api.hh.ru/vacancies?text=data%20engineer&area=1&per_page=100&date_from
 ---
 ### DataLens:
 Для визуализации и выполнения аналитики полученных данных, был выбран сервис DataLens. На основании полученных данных был построен следующий дашборд:
-![2]([https://github.com/Alya-DE/My_ETL/blob/main/png/visual_analytics.png])
+![visual_analytics](https://github.com/Alya-DE/My_ETL/blob/main/png/visual_analytics.png)
