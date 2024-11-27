@@ -1,0 +1,125 @@
+x-airflow-settings: &airflow-settings
+  environment:
+    &airflow-settings-env
+    AIRFLOW_CORE_EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow 
+    AIRFLOW__CORE_DAGS_ARE_PAUSED_AT_CREATION: 'true' # для проверки DAG перед запуском, во избежание неожиданных запусков неготовых DAG
+    AIRFLOW_CORE_LOAD_EXAMPLES: 'false' # скроем примеры DAG
+    AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: 5 # установим интервал времени для проверки изменений и пояаления новых DAG в директории DAG
+    _AIRFLOW_DB_MIGRATE: 'true' # для выполнения миграции базы данных при загрузке 
+    _AIRFLOW_WWW_USER_CREATE: 'true' # создадим пользователя по умолчанию для веб-интерфейса Airflow
+    _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-admin}
+    _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-password}
+  volumes:
+    - ./dags:/opt/airflow/dags # монтируем локальную папку с DAG в контейнер, чтобы Airflow мог получать к ним доступ
+    - ./logs:/opt/airflow/logs # монтируем локальную папку для хранения логов выполнения задач
+    - ./plugins:/opt/airflow/plugins # монтируем папку для пользовательских плагинов Airflow
+    - ./scripts:/opt/airflow/scripts # монтируем папку для скриптов, которые могут использоваться в DAG
+  depends_on:
+    postgres:
+      condition: service_healthy # установим условие, чтобы Airflow не попытался подключиться к базе данных, пока она еще не готова
+  networks: 
+    - all_in_one # для взаимодействия с другими сервисами внутри единой изолированной сети, подключим сервисы Airflow к сети с общим именем all_in_one
+
+services:  # опишем сервисы, которые будем разворачивать с помощью Docker-compose для реализации поставленной задачи
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow 
+    ports: # настроим перенаправление портов, которое позволит подключиться к сервису Postgres снаружи контейнера
+      - "5432:5432" 
+    restart: always 
+    volumes: 
+      - postgres-db-volume:/var/lib/postgresql/data 
+    healthcheck: # добавим настройку проверки доступности сервера PostgreSQL, чтобы убедиться, что PostgreSQL работает корректно
+      test: [ "CMD", "pg_isready", "-U", "airflow" ]
+      interval: 5s
+      retries: 5
+    networks:
+      - all_in_one
+
+  af-webserver:
+    <<: *airflow-settings 
+    build: # зададим команду Docker-Compose, что потребуется создать образ контейнера на основании Dockerfile, а не использовать уже существующий
+      context: ./airflow_dockerfile 
+      dockerfile: Dockerfile
+    container_name: af-webserver
+    environment:
+      *airflow-settings-env
+    command: webserver
+    ports:
+      - "8080:8080"
+    restart: always
+
+  af-scheduler:
+    <<: *airflow-settings
+    build:
+      context: ./airflow_dockerfile
+      dockerfile: Dockerfile
+    container_name: af-scheduler
+    environment:
+      *airflow-settings-env
+    command: scheduler
+    restart: always
+
+  af-worker:
+    <<: *airflow-settings
+    build:
+      context: ./airflow_dockerfile
+      dockerfile: Dockerfile
+    container_name: af-worker
+    environment:
+      *airflow-settings-env
+    command: version 
+    restart: always
+
+  airflow-init:
+    <<: *airflow-settings
+    build:
+      context: ./airflow_dockerfile
+      dockerfile: Dockerfile
+    container_name: airflow-init
+    command: version  
+    environment:
+      <<: *airflow-settings-env
+
+
+  server_psql:
+      image: postgres:15
+      container_name: server_psql
+      restart: always
+      ports:
+        - '5431:5432'
+      volumes:
+        - ./pgdata:/var/lib/postgresql/data
+      environment:
+        POSTGRES_USER: user
+        POSTGRES_PASSWORD: user
+        POSTGRES_DB: user
+
+  superset:
+    container_name: superset
+    build:
+      context: ./superset_dockerfile
+      dockerfile: Dockerfile
+    environment:
+      - ADMIN_USERNAME=admin
+      - ADMIN_EMAIL=admin@superset.com
+      - ADMIN_PASSWORD=password
+    volumes:
+      - ./superset_data:/app/superset_home 
+    ports: 
+      - '8088:8088'
+    depends_on:
+      - postgres
+    networks:
+      - all_in_one
+
+    
+volumes:
+  postgres-db-volume:
+
+networks:
+  all_in_one:
