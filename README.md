@@ -28,7 +28,7 @@
 
 https://api.hh.ru/vacancies?text=data%20engineer&area=1&per_page=100&date_from={start_date}&date_to={end_date}&experience=between1And3&experience=noExperience" 
 
-Так как hh.ru позволяет получить исторические данные только за предшествующий месяц, то было принято решение получить данные по опубликованным вакансиям с 1 ноября, чтобы в дальнейшем проводить аналитику данных за полноценный месяц.
+Так как hh.ru позволяет получить исторические данные только за предшествующий месяц, то было принято решение получить данные по опубликованным вакансиям с 1 марта 2025 года, чтобы в дальнейшем проводить аналитику данных за полноценный месяц.
 
 ---
 ### Airflow:
@@ -42,4 +42,4 @@ https://api.hh.ru/vacancies?text=data%20engineer&area=1&per_page=100&date_from={
 ### DataLens:
 Для визуализации и выполнения аналитики полученных данных был выбран сервис DataLens. На основании полученных данных был построен следующий дашборд:
 
-![visual_analytics](https://github.com/Alya-DE/My_ETL/blob/main/png/visual_analytics.png)
+![visual_analytics](https://github.com/Alya-DE/HH_ETL_Pipeline/blob/main/png/visual_analytics.png)
