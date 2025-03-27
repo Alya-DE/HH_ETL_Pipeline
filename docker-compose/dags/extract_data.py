@@ -52,8 +52,8 @@ def extract_data_from_api(start_date, end_date):
 # Функция для извлечения исторических данных
 def load_historical_data_to_db():
     # Обозначим период, за который требуется извлечение исторических данных в формате YYYY-MM-DD:  
-    start_date = '2024-11-01'
-    end_date = '2024-11-24'
+    start_date = '2025-03-01'
+    end_date = '2025-03-27'
 
     # Извлекаем данные за указанный период
     vacancies = extract_data_from_api(start_date, end_date)
