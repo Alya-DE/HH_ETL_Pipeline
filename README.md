@@ -42,4 +42,4 @@ https://api.hh.ru/vacancies?text=data%20engineer&area=1&per_page=100&date_from={
 ### DataLens:
 Для визуализации и выполнения аналитики полученных данных был выбран сервис DataLens. На основании полученных данных был построен следующий дашборд:
 
-![visual_analytics](https://github.com/Alya-DE/HH_ETL_Pipeline/blob/main/png/visual_analytics.png)
+![visual_analytics](https://github.com/Alya-DE/HH_ETL_Pipeline/blob/main/png/visual_analytics_march.png)
