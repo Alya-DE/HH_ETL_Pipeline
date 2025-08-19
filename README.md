@@ -26,7 +26,7 @@
 ### Стек и версии:
 
 |    Компонент    |           Версия / образ          |     Порт(ы)     |
-| --------------- | --------------------------------- | --------------- |
+| --------------- | :-------------------------------: | :-------------: |
 | Ubuntu          |               24.04               |        -        |
 | Docker          |               28.2.2              |        -        |
 | Docker Compose  |               2.36.2              |        -        |
@@ -49,13 +49,13 @@ http://<public-ip>:8088   # Superset
 ---
 ### Установка и запуск
 1. Клонирование репозитория
-```b
+```bash
 git clone https://github.com/Alya-DE/HH_ETL_Pipeline.git
 cd HH_ETL_Pipeline
 ```
 
 2. Создание файл `.env` с параметрами:
-```
+```env
 POSTGRES_USER=airflow 
 POSTGRES_PASSWORD=airflow
 _AIRFLOW_WWW_USER_USERNAME=admin
@@ -65,17 +65,17 @@ AIRFLOW_GID=0
 SUPERSET_ADMIN_USERNAME=admin 
 SUPERSET_ADMIN_EMAIL=admin@superset.com 
 SUPERSET_ADMIN_PASSWORD=supersecret123 
-SUPERSET_SECRET_KEY=<результат_функции_secrets.token_urlsafe(32)> # *сгенерируйте уникальный 32-байтный секретный ключ*
+SUPERSET_SECRET_KEY=<результат_функции_secrets.token_urlsafe(32)> # сгенерируйте уникальный 32-байтный секретный ключ
 ```
 
-3. Запуск проекта из корневой директории осуществляется с помощью Docker Compose:
-```
+3. Запуск проекта из корневой директории осуществляется с помощью docker compose:
+```bash
 sudo docker compose build
 sudo docker compose up -d
 ```
 
 Проверка успешной установки через статусы контейнеров:
-```
+```bash
 sudo docker compose ps -a
 ```
 
@@ -84,13 +84,13 @@ sudo docker compose ps -a
 #### *1) Airflow не стартует, ругается на logs/права*
 
 В процессе установки создается директория `./logs` для airflow. Может потребоваться выдача прав доступа для этой папки:
-```
+```bash
 sudo mkdir -p ./logs
 sudo chown -R 501:0 ./logs
 ```
 
 После необходимо перезапустить docker compose:
-```
+```bash
 sudo docker compose down
 sudo docker compose up -d
 ```
@@ -114,7 +114,7 @@ docker compose up -d superset
 ### Настройка дашборда.
 Apache Superset предлагает широкий спектр настройки для динамических дашбордов. В дашборде проекта я хотела отразить актуальные данные по вакансиям "Data Engineer" с локализацией в городе Москва и c опытом работы от 0 до 3 лет ровно за последние 30 дней публикации. Для этого в SQL Lab была настроена схема, из которой в последующем были взяты данные для построения дашборда:
 
-```
+```sql
 SELECT *
 FROM vacancies 
 WHERE published_at >= CURRENT_DATE - INTERVAL '30 days'
