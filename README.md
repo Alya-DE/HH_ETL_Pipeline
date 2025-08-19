@@ -42,8 +42,8 @@
 
 После успешного развертывания доступно подключение:
 ```
-http://<public-ip>:8080  # *Airflow*
-http://<public-ip>:8088  # *Superset*
+http://<public-ip>:8080   # Airflow
+http://<public-ip>:8088   # Superset
 ```
 
 ---
