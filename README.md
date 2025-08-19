@@ -1,45 +1,125 @@
 # HH_ETL_Pipeline
 
-Хочу пожелать всем, читающим данную работу, доброго времени суток и поблагодарить за уделенное время!
+![ETL_schema](https://github.com/Alya-DE/HH_ETL_Pipeline/blob/main/png/ETL_schema.png)
 
 ---
-![etl_schema](https://github.com/Alya-DE/My_ETL/blob/main/png/etl_schema.png)
-
-В рамках данного проекта я поставила цель практического освоения процессов ETL. В качестве источника данных был выбран открытый API сайта hh.ru. Задачей было настроить получение данных об опубликованных вакансиях, содержащих ключевые слова "Data Engineer", на начальные позиции в Москве с требованиями к опыту от 0 до 3 лет. В качестве оркестратора был задействован Apache Airflow. Витрины данных было решено хранить в PostgreSQL. Для визуализации был выбран сервис анализа и визуализации данных от Яндекса - DataLens.
-
----
-### Задействованные сервисы:
-
-|       ПО       |           Порт / сайт          |     Версия     |
-| -------------- | ------------------------------ | -------------- |
-| Apache Airflow |     http://localhost:8080      |    2.10.2      |
-| PostgreSQL     |     http://localhost:5432      |      17        |
-| DBeaver        |               -                |    24.2.4      |
-| DataLens       | https://datalens.yandex.cloud/ |       -        |
+### Цель
+Разработать ETL-процесс, который ежедневно забирает данные по ключевым словам из публичного API hh.ru, загружает их в хранилище данных PostgreSQL и ежедневно обновляет дашборд в Apache Superset.
 
 ---
-### Подготовка к работе:
-
-Для выполнения поставленной задачи можно воспользоваться предустановленным программным обеспечением - Apache Airflow и PostgreSQL или развернуть все необходимые инструменты с помощью docker-compose (для реализации данного варианта потребуется также установить ПО Docker и Docker-compose, а в качестве BI инструмента вместо DataLens будет использован Apache Superset).
-
----
-### Источник данных:
-В качестве источника данных был выбран следующий API URL:
-
-https://api.hh.ru/vacancies?text=data%20engineer&area=1&per_page=100&date_from={start_date}&date_to={end_date}&experience=between1And3&experience=noExperience" 
-
-Так как hh.ru позволяет получить исторические данные только за предшествующий месяц, то было принято решение получить данные по опубликованным вакансиям с 1 марта 2025 года, чтобы в дальнейшем проводить аналитику данных за полноценный месяц.
-
----
-### Airflow:
-С помощью DAG Airflow выполняется создание необходимого отношения в базе данных, в которую будут сохранены извлеченные данные, а также само извлечение необходимых данных с API URL. Для извлечения исторических данных за предшествующий период и для настройки извлечения данных на будущие дни логика была разделена на две функции: load_historical_data_to_db() и load_daily_data_to_db(). Airflow помогает выполнить сразу два этапа ETL - Transfer и Load. В рамках этапа Transfer DAG Airflow преобразует данные из формата JSON из API в вид структурированной таблицы перед загрузкой в базу данных. В рамках этапа Load с помощью все того же DAG осуществляется загрузка данных в базу данных PostgreSQL, где они сохраняются для последующего использования.
-
----
-### PostgreSQL:
-В связи с тем, что ожидалось получение небольшого объема данных, было решено выбрать в качестве СУБД PostgreSQL. Была использована 17-я версия PostgreSQL. База данных hh_data_engineer и пользователь worker с паролем password были созданы заранее через интерактивное окружение PostgreSQL. Для PostgreSQL был использован предоставленный порт по умолчанию :5432.
+### Структура проекта
+```
+.
+├── docker-compose.yml
+├── airflow_dockerfile
+│   └── Dockerfile
+│   └── requirements.txt
+├── dags
+├── superset_dockerfile
+├── src
+│   └── init_db
+│          └── init.sql
+└── .env
+```
 
 ---
-### DataLens:
-Для визуализации и выполнения аналитики полученных данных был выбран сервис DataLens. На основании полученных данных был построен следующий дашборд:
+### Стек и версии:
 
-![visual_analytics](https://github.com/Alya-DE/HH_ETL_Pipeline/blob/main/png/visual_analytics_march.png)
+|    Компонент    |           Версия / образ          |     Порт(ы)     |
+| --------------- | --------------------------------- | --------------- |
+| Ubuntu          |               24.04               |        -        |
+| Docker          |               28.2.2              |        -        |
+| Docker Compose  |               2.36.2              |        -        |
+| Apache Airflow  |               2.10.2              |       8080      |
+| PostgreSQL      |            postgres:15            |       5432      |
+| Apache Superset |               4.1.3               |       8088      |
+
+---
+### Сети - настройка портов на удаленной виртуальной машине
+Так как инфраструктура развернута на удаленной виртуальной машине [cloud.ru](https://cloud.ru/), потребуется настроить правила входящего трафика для соответствущей группы безопасности:
+
+![VM_rules.png](https://github.com/Alya-DE/HH_ETL_Pipeline/blob/main/png/VM_rules.png)
+
+После успешного развертывания доступно подключение:
+```
+http://<public-ip>:8080  # *Airflow*
+http://<public-ip>:8088  # *Superset*
+```
+
+---
+### Установка и запуск
+1. Клонирование репозитория
+```b
+git clone https://github.com/Alya-DE/HH_ETL_Pipeline.git
+cd HH_ETL_Pipeline
+```
+
+2. Создание файл `.env` с параметрами:
+```
+POSTGRES_USER=airflow 
+POSTGRES_PASSWORD=airflow
+_AIRFLOW_WWW_USER_USERNAME=admin
+_AIRFLOW_WWW_USER_PASSWORD=password
+AIRFLOW_UID=501
+AIRFLOW_GID=0 
+SUPERSET_ADMIN_USERNAME=admin 
+SUPERSET_ADMIN_EMAIL=admin@superset.com 
+SUPERSET_ADMIN_PASSWORD=supersecret123 
+SUPERSET_SECRET_KEY=<результат_функции_secrets.token_urlsafe(32)> # *сгенерируйте уникальный 32-байтный секретный ключ*
+```
+
+3. Запуск проекта из корневой директории осуществляется с помощью Docker Compose:
+```
+sudo docker compose build
+sudo docker compose up -d
+```
+
+Проверка успешной установки через статусы контейнеров:
+```
+sudo docker compose ps -a
+```
+
+---
+### Возможные проблемы при развертывании и решения:
+#### *1) Airflow не стартует, ругается на logs/права*
+
+В процессе установки создается директория `./logs` для airflow. Может потребоваться выдача прав доступа для этой папки:
+```
+sudo mkdir -p ./logs
+sudo chown -R 501:0 ./logs
+```
+
+После необходимо перезапустить docker compose:
+```
+sudo docker compose down
+sudo docker compose up -d
+```
+
+#### *2) База метаданных Superset не создалась автоматически*
+В случае возникновения ошибоки с автоматическим созданием базы данных для метаданных Apache Superset, может потребоваться ручная установка необходимой БД. Для этого:
+```
+# заходим в работающий контейнер Postgres под root-пользователем БД
+docker exec -it hh_data_engineer-postgres-1 psql -U ${POSTGRES_USER}
+
+# Внутри psql создаем необходимую базу данных:
+CREATE DATABASE superset_meta OWNER airflow;
+\q
+
+# После осуществляем локальный перезапуск контейнеров superset-init и superset:
+docker compose up -d superset-init
+docker compose up -d superset
+```
+
+---
+### Настройка дашборда.
+Apache Superset предлагает широкий спектр настройки для динамических дашбордов. В дашборде проекта я хотела отразить актуальные данные по вакансиям "Data Engineer" с локализацией в городе Москва и c опытом работы от 0 до 3 лет ровно за последние 30 дней публикации. Для этого в SQL Lab была настроена схема, из которой в последующем были взяты данные для построения дашборда:
+
+```
+SELECT *
+FROM vacancies 
+WHERE published_at >= CURRENT_DATE - INTERVAL '30 days'
+ORDER BY published_at DESC;
+```
+
+### Пример дашборда:
+![dashboard.png](https://github.com/Alya-DE/HH_ETL_Pipeline/blob/main/png/dashboard.png) 
