@@ -16,6 +16,9 @@
 │   └── requirements.txt
 ├── dags
 ├── superset_dockerfile
+│   └── Dockerfile
+│   └── superset_config.py
+│   └── superset-init.sh
 ├── src
 │   └── init_db
 │          └── init.sql
