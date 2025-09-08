@@ -102,7 +102,7 @@ sudo docker compose up -d
 В случае возникновения ошибки с автоматическим созданием базы данных для метаданных Apache Superset, может потребоваться ручная установка необходимой БД. Для этого:
 ```
 # заходим в работающий контейнер Postgres под root-пользователем БД
-docker exec -it hh_data_engineer-postgres-1 psql -U ${POSTGRES_USER}
+docker exec -it <имя-контейнера-postgres> psql -U ${POSTGRES_USER}
 
 # Внутри psql создаем необходимую базу данных:
 CREATE DATABASE superset_meta OWNER airflow;
